@@ -1,0 +1,24 @@
+php artisan migrate
+php artisan make:seeder ProductsTableSeeder
+php artisan make:seeder CategoriesTableSeeder
+php artisan db:seed --class=ProductsTableSeeder
+php artisan db:seed --class=CategoriesTableSeeder
+php artisan make:migration add_tumbnail_to_products_table --table=products
+
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"name": "Hani Big Coat", "price": "69.9", "description": "Super warm winter coat!", "image": "008.jpeg", "catid": "1", "stock": "5"}' \
+http://127.0.0.1:8000/api/products
+
+curl --verbose GET http://127.0.0.1:8000/api/products
+
+curl --verbose -X "GET" http://127.0.0.1:8000/api/products/1
+
+curl --verbose -X "GET" http://127.0.0.1:8000/api/products/catergory/1
+
+curl --verbose -X "DELETE" http://127.0.0.1:8000/api/products/
+
+curl --verbose -X "PUT" -H "Content-Type: application/json" \
+-d '{"name": "JJ Coat", "price": "69.9", "description": "Super warm winter coat!", "image": "008.jpeg", "catid": "1", "stock": "5"}' \
+http://127.0.0.1:8000/api/products/16
+
+curl --verbose GET http://127.0.0.1:8000/api/categories
