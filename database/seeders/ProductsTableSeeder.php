@@ -53,6 +53,7 @@ class ProductsTableSeeder extends Seeder
                 'description' => $product->description,
                 'stock' => $product->stock,
                 'image' => $product->image,
+                'thumbnail' => '',
             ]);
         }
     }

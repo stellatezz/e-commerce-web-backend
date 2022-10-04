@@ -24,8 +24,10 @@ class CategoriesController extends Controller
             'name' => 'required',
         ]);
         try{
+            $f_name = filter_var(request('name'), FILTER_SANITIZE_STRING);
+
             $result = Category::create([
-                'name' => request('name'),
+                'name' => $f_name,
             ]);
             return response()->json([
                 'message' => $result,
@@ -42,7 +44,10 @@ class CategoriesController extends Controller
             'name' => 'required',
         ]);
         try{
-            $result = DB::update('update categories set name = ? where catid = ?', array(request()->name, $catid));
+            $f_name = filter_var(request('name'), FILTER_SANITIZE_STRING);
+            $f_catid = filter_var($catid, FILTER_SANITIZE_STRING);
+
+            $result = DB::update('update categories set name = ? where catid = ?', array($f_name, $f_catid));
 
             return response()->json([
                 'message' => $result

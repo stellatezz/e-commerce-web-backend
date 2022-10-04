@@ -42,20 +42,37 @@ class ProductsController extends Controller
 
         try{
             $destPath = 'product/image';
+            $destPath_thumb = 'product/image/thumbnail';
             $destinationPath = public_path('/storage/product/thumbnail');
             $randomStr = Str::random();
             $imageName = $randomStr.'.'.request()->image->getClientOriginalExtension();
             $res = Storage::disk('public')->putFileAs($destPath, request()->image,$imageName);
-            $tumbImg = Image::make(request()->image)->resize(110, 130);
+            
+            $width = 200; // your max width
+            $height = 200; // your max height
+            $tumbImg = Image::make(request()->image);
+            $tumbImg->height() > $tumbImg->width() ? $width=null : $height=null;
+            $tumbImg->resize($width, $height, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+
             $tumbImgName = $randomStr.'_thumbnail.jpg';
             $tumbImg->save($destinationPath.'/'.$tumbImgName);
-            
+
+            $name = request('name');
+            $f_name = filter_var($name, FILTER_SANITIZE_STRING);
+            $description = request('description');
+            $f_description = filter_var($description, FILTER_SANITIZE_STRING);
+            $f_stock = filter_var(request('stock'), FILTER_SANITIZE_STRING);
+            $f_price = filter_var(request('price'), FILTER_SANITIZE_STRING);
+            $f_catid = filter_var(request('catid'), FILTER_SANITIZE_STRING);
+
             $result = Product::create([
-                'catid' => request('catid'),
-                'name' => request('name'),
-                'price' => request('price'),
-                'description' => request('description'),
-                'stock' => request('stock'),
+                'catid' => $f_catid,
+                'name' => $f_name,
+                'price' => $f_price,
+                'description' => $f_description,
+                'stock' => $f_stock,
                 'image' => $imageName,
                 'thumbnail' => $tumbImgName,
             ]);
@@ -80,11 +97,18 @@ class ProductsController extends Controller
             'stock' => 'required',
         ]);
         try{
+            $f_stock = filter_var(request('stock'), FILTER_SANITIZE_STRING);
+            $f_price = filter_var(request('price'), FILTER_SANITIZE_STRING);
+            $f_catid = filter_var(request('catid'), FILTER_SANITIZE_STRING);
+            $f_name = filter_var(request('name'), FILTER_SANITIZE_STRING);
+            $f_description = filter_var(request('description'), FILTER_SANITIZE_STRING);
+            $f_pid = filter_var($pid, FILTER_SANITIZE_STRING);
+
             $result = DB::update('update products set name = ?, catid = ?, price = ?, description = ?, stock = ? where 
-            pid = ?', array(request()->name, request()->catid, request()->price, request()->description, request()->stock, $pid));
+            pid = ?', array($f_name, $f_catid, $f_price, $f_description, $f_stock, $f_pid));
 
             if(request()->hasFile('image')){
-                $oldImage = DB::select('select image from products where pid = ?', array($pid));
+                $oldImage = DB::select('select image from products where pid = ?', array($f_pid));
                 if($oldImage[0]->image){
                     $oldImage = $oldImage[0]->image;
                     $exists = Storage::disk('public')->exists("product/image/{$oldImage}");
@@ -92,7 +116,7 @@ class ProductsController extends Controller
                         Storage::disk('public')->delete("product/image/{$oldImage}");
                     }
                 }
-                $oldTumb = DB::select('select thumbnail from products where pid = ?', array($pid));
+                $oldTumb = DB::select('select thumbnail from products where pid = ?', array($f_pid));
                 if($oldTumb[0]->thumbnail){
                     $oldTumb = $oldTumb[0]->thumbnail;
                     $isExists = Storage::disk('public')->exists("product/thumbnail/{$oldTumb}");
@@ -104,11 +128,18 @@ class ProductsController extends Controller
                 $randomStr = Str::random();
                 $imageName = $randomStr.'.'.request()->image->getClientOriginalExtension();
                 Storage::disk('public')->putFileAs('product/image', request()->image,$imageName);
-                $tumbImg = Image::make(request()->image)->resize(110, 130);
+                //$tumbImg = Image::make(request()->image)->resize(110, 130);
+                $width = 200; // your max width
+                $height = 200; // your max height
+                $tumbImg = Image::make(request()->image);
+                $tumbImg->height() > $tumbImg->width() ? $width=null : $height=null;
+                $tumbImg->resize($width, $height, function ($constraint) {
+                    $constraint->aspectRatio();
+                });
                 $tumbImgName = $randomStr.'_thumbnail.jpg';
                 $tumbImg->save($destinationPath.'/'.$tumbImgName);
                 $result = DB::update('update products set image = ?, thumbnail = ? where 
-                pid = ?', array($imageName, $tumbImgName, $pid));
+                pid = ?', array($imageName, $tumbImgName, $f_pid));
     
             }
 

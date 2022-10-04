@@ -1,9 +1,44 @@
+CREATE DATABASE iergweb;
+CREATE USER 'iergweb'@'localhost' IDENTIFIED WITH mysql_native_password BY 'iergweb';
+GRANT ALL ON iergweb.* TO 'iergweb'@'localhost';
+
+sudo service apache2 restart
+
 php artisan migrate
 php artisan make:seeder ProductsTableSeeder
 php artisan make:seeder CategoriesTableSeeder
 php artisan db:seed --class=ProductsTableSeeder
 php artisan db:seed --class=CategoriesTableSeeder
 php artisan make:migration add_tumbnail_to_products_table --table=products
+php artisan make:migration add_salt_to_users_table --table=users
+php artisan make:migration add_flag_to_users_table --table=users
+php artisan make:migration add_fkey_to_products_table --table=products
+
+php artisan make:migration add_token_to_users_table --table=sessions
+php artisan make:migration add_expires_to_sessions_table --table=sessions
+
+php artisan make:migration add_catid_to_products_table --table=products
+
+php artisan make:migration add_csrf_to_sessions_table --table=sessions
+
+php artisan make:migration create_orders_table --table=orders
+
+php artisan make:migration add_time_to_orders_table --table=orders
+
+php artisan make:migration create_iplists_table --table=iplists
+
+
+
+php artisan iplist:table
+
+
+php artisan order:table
+
+php artisan make:model Iplist
+
+
+
+php artisan make:controller UserController
 
 curl --verbose -X POST -H "Content-Type: application/json" \
 -d '{"name": "Hani Big Coat", "price": "69.9", "description": "Super warm winter coat!", "image": "008.jpeg", "catid": "1", "stock": "5"}' \
@@ -15,10 +50,138 @@ curl --verbose -X "GET" http://127.0.0.1:8000/api/products/1
 
 curl --verbose -X "GET" http://127.0.0.1:8000/api/products/catergory/1
 
-curl --verbose -X "DELETE" http://127.0.0.1:8000/api/products/
+curl --verbose -X "DELETE" http://127.0.0.1:8000/api/products/1
+
+curl --verbose -X "DELETE" -H "Content-Type: application/json" \
+-d '{"token": "f5ddd80aec2e0360c9a21d1c55fd7825cc36b8bb8ee0718822953d30a8b11c01", "session": "fSJWerYallBQIcNZ"}' \
+http://127.0.0.1:8000/api/products/29
+
+curl --verbose -X "POST" -H "Content-Type: application/json" \
+-d '{"token": "null", "session": "aW4oc66pzWrvmtXz"}' \
+http://127.0.0.1:8000/api/user/vaildate
 
 curl --verbose -X "PUT" -H "Content-Type: application/json" \
 -d '{"name": "JJ Coat", "price": "69.9", "description": "Super warm winter coat!", "image": "008.jpeg", "catid": "1", "stock": "5"}' \
 http://127.0.0.1:8000/api/products/16
 
 curl --verbose GET http://127.0.0.1:8000/api/categories
+
+curl --verbose POST http://127.0.0.1:8000/api/order/allorder
+
+curl --verbose -X "POST" -H "Content-Type: application/json" \
+-d '{"token": "null", "session": "aW4oc66pzWrvmtXz"}' \
+http://127.0.0.1:8000/api/order/allorder
+
+
+sudo chgrp -R ooo storage
+
+
+sudo chgrp -R www-data storage bootstrap/cache
+
+chmod -R 775 storage bootstrap/cache
+
+
+update users set flag = 1 where email = "admin@mail.com";
+
+//register
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"name": "admin", "email": "admin@mail.com", "password": "admin@123"}' \
+http://127.0.0.1:8000/api/auth/register
+
+//register
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"name": "test4", "email": "test4@mail.com", "password": "test4"}' \
+http://127.0.0.1:8000/api/auth/register
+
+//login
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"email": "admin@mail.com", "password": "admn@123"}' \
+https://secure.s37.ierg4210.ie.cuhk.edu.hk:3000/api/auth/login
+
+//login
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"email": "admin@mail.com", "password": "admin@123"}' \
+http://127.0.0.1:8000/api/auth/login
+
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"email": "test4@mail.com", "password": "test4"}' \
+http://127.0.0.1:8000/api/auth/login
+
+
+
+//logout
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"sessionId": "uw9N5iQBcn5qoNTm"}' \
+http://127.0.0.1:8000/api/auth/logout
+
+//change pw
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"uid": "test1@web.com", "password": "test3", "newPassword": "test4", "sessionId": "uw9N5iQBcn5qoNTm"}' \
+http://127.0.0.1:8000/api/user/modify/pw
+
+
+//checkout
+curl --verbose -X POST -H "Content-Type: application/json" \
+-d '{"uid": "0", "username": "guest", "currency": "HKD", "products": "[{"pid":8,"quantity":1,"name":"Chicago Hoodie","price":72.2}]"}' \
+http://127.0.0.1:8000/api/order/checkout
+
+//allorder
+curl --verbose -X "POST" -H "Content-Type: application/json" \
+-d '{"token": "921bdffa79fed84dde4c79639bc71f68f5c8768fade7afc054a5d1946f447319", "session": "1xRotg54F2V2nCi9", "csrf_nonce":"YadoFooV06F4Z47f"}' \
+http://127.0.0.1:8000/api/order/allorder
+
+//userorder
+curl --verbose -X "POST" -H "Content-Type: application/json" \
+-d '{"uid": "5", "username": "admin", "csrf_nonce":"YadoFooV06F4Z47f", "session":"1xRotg54F2V2nCi9"}' \
+http://127.0.0.1:8000/api/order/userorder
+
+
+update users set flag = 1 where email = "test1@web.com";
+
+admin@email.com admin@123
+
+ln -s  /var/www/laravel/storage/app/public storage
+
+$table->foreign('user_id')->references('id')->on('users');
+
+ALTER TABLE products
+ADD FOREIGN KEY (catid) REFERENCES categories(catid);
+
+ALTER TABLE products
+ALTER COLUMN catid BIGINT;
+
+ALTER TABLE products
+DROP COLUMN catid;
+
+
+paypal pw: Hogsov0fecficynpog
+
+https://secure.s37.ierg4210.ie.cuhk.edu.hk:3000/api/order/paypal-ipn
+
+php artisan make:middleware EnsureCSRFIsValid
+
+
+https://www.sandbox.paypal.com/checkoutnow?sessionID=
+&buttonSessionID=uid_f796f077d0_mja6nti6mty&
+stickinessID=uid_66ac8fccf1_mji6mti6mda&inlinexo=false&fundingSource=paypal&buyerCountry=HK&locale.x=zh_TW&commit=true&clientID=AQnzG2kV1gbhhsz-dYsTlRvhoh6Zc8EDvjIE6t75RhcUYvGTgxDaB8MrTcpD8MvQB0ogLLlJTHqvHI45&env=sandbox&sdkMeta=eyJ1cmwiOiJodHRwczovL3d3dy5wYXlwYWwuY29tL3Nkay9qcz9jbGllbnQtaWQ9QVFuekcya1YxZ2JoaHN6LWRZc1RsUnZob2g2WmM4RUR2aklFNnQ3NVJoY1VZdkdUZ3hEYUI4TXJUY3BEOE12UUIwb2dMTGxKVEhxdkhJNDUiLCJhdHRycyI6eyJkYXRhLXNkay1pbnRlZ3JhdGlvbi1zb3VyY2UiOiJyZWFjdC1wYXlwYWwtanMiLCJkYXRhLXVpZCI6InVpZF96aGp6cnBkdGF1Z2FsdHhyZG5kZnVnd2VvY3F1eHIifX0&xcomponent=1&version=5.0.303&token=7BA00798SK189872G
+
+deloy step:
+cd /home/ubuntu/build;
+tar zxf laravel.tar.gz;
+sudo rm -rf /var/www/laravel;
+sudo mv ierg4210-backend /var/www/laravel;
+cd /var/www/laravel/public/;
+rm storage;
+ln -s  /var/www/laravel/storage/app/public storage;
+cd /var/www/laravel;
+sudo chgrp -R www-data storage bootstrap/cache;
+chmod -R 775 storage bootstrap/cache;
+php artisan migrate;
+
+
+0755
+
+error_log(print_r($_POST,true), 3, "/home/ubuntu/errors.log");
+
+
+adminpw: ESx*y:9rA^Lk36*b
